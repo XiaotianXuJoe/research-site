@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>个股深度验证 · 研报库</title>
+<style>
+  :root { --navy:#16324f; --blue:#1f4e79; --lblue:#5b9bd5; --bg:#f4f6f9; --gold:#c9a227; --red:#b03a2e; --green:#4a7c59; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:"Microsoft YaHei","PingFang SC","Noto Sans CJK SC",sans-serif; background:var(--bg); color:#2b2b2b; line-height:1.65; }
+  .wrap { max-width:960px; margin:0 auto; padding:24px 20px 64px; }
+  .upd { background:#fff7e6; border:1px solid #f0c36d; border-left:4px solid #e6a23c; border-radius:8px; padding:10px 14px; font-size:13.5px; color:#6b4e12; margin-bottom:14px; }
+/* 下拉菜单 */
+.dropdown { position:relative; display:inline-block; }
+.dropbtn { color:#c8d6ea; padding:8px 14px; cursor:pointer; font-size:14px; border-radius:6px; transition:.15s; display:inline-flex; align-items:center; gap:.3rem; }
+.dropbtn .caret { font-size:.7rem; opacity:.7; transition:transform .18s; }
+.dropdown:hover .dropbtn, .dropbtn.active { color:#fff; background:rgba(255,255,255,.12); }
+.dropdown:hover .caret { transform:rotate(180deg); }
+.dropmenu { display:none; position:absolute; top:100%; left:0; min-width:220px; background:#fff; border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,.22); padding:6px; z-index:100; border:1px solid #e3e9f2; }
+.dropdown:hover .dropmenu { display:block; animation:dropfade .16s ease; }
+@keyframes dropfade { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:none; } }
+.dropmenu a { display:flex; justify-content:space-between; align-items:baseline; gap:.8rem; padding:9px 12px; border-radius:7px; color:#243b56; font-size:13.5px; transition:.12s; }
+.dropmenu a:hover { background:#f0f4fa; }
+.dropmenu a.active { background:#e8effa; color:var(--navy); font-weight:600; }
+.dropmenu .dname { font-weight:600; }
+.dropmenu .dcode { color:#8aa0be; font-size:11.5px; font-family:monospace; }
+nav.top { position:sticky; top:0; z-index:50; background:var(--navy); box-shadow:0 2px 6px rgba(0,0,0,.15); }
+  nav.top .inner { max-width:960px; margin:0 auto; display:flex; align-items:center; gap:6px; padding:0 20px; flex-wrap:wrap; }
+  nav.top .brand { color:#fff; font-weight:bold; font-size:15px; padding:12px 14px 12px 0; margin-right:6px; border-right:1px solid rgba(255,255,255,.25); }
+  nav.top a { color:#cfe0f0; text-decoration:none; font-size:14px; padding:12px 14px; display:inline-block; }
+  nav.top a:hover { color:#fff; background:rgba(255,255,255,.08); }
+  nav.top a.active { color:#fff; border-bottom:3px solid var(--gold); font-weight:bold; }
+  header.hero { background:linear-gradient(135deg,#16324f 0%,#1f4e79 100%); color:#fff; padding:36px 28px; border-radius:12px; margin:24px 0; }
+  header.hero .tag { display:inline-block; background:var(--gold); color:#16324f; font-weight:bold; font-size:13px; padding:3px 12px; border-radius:20px; margin-bottom:12px; }
+  header.hero h1 { font-size:25px; margin-bottom:6px; }
+  header.hero .sub { opacity:.85; font-size:14px; }
+  .verdict { background:#fff; border-left:6px solid var(--gold); border-radius:8px; padding:20px 24px; margin-bottom:24px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+  .verdict h2 { color:var(--navy); font-size:19px; margin-bottom:10px; }
+  .verdict p { font-size:15px; margin-top:8px; }
+  .stance { display:inline-block; background:var(--navy); color:#fff; font-weight:bold; padding:2px 14px; border-radius:4px; font-size:14px; }
+  section { background:#fff; border-radius:12px; padding:26px 28px; margin-bottom:24px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+  h2.sec { color:var(--navy); font-size:20px; border-bottom:2px solid var(--lblue); padding-bottom:8px; margin-bottom:16px; }
+  h2.sec span.en { font-size:13px; color:#8a8a8a; font-weight:normal; margin-left:8px; }
+  h3 { color:var(--blue); font-size:16px; margin:16px 0 8px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:14px; }
+  .card { border:1px solid #e3e8ef; border-radius:8px; padding:14px 16px; background:#fbfcfe; }
+  .card .t { font-size:13px; color:#666; }
+  .card .v { font-size:20px; font-weight:bold; color:var(--navy); }
+  .card .n { font-size:12px; color:#999; margin-top:2px; }
+  table { width:100%; border-collapse:collapse; font-size:14px; margin:10px 0; }
+  th { background:var(--navy); color:#fff; padding:8px 10px; text-align:left; font-weight:normal; }
+  td { padding:7px 10px; border-bottom:1px solid #e8edf3; }
+  tr:nth-child(even) td { background:#f7fafc; }
+  .chart { text-align:center; margin:14px 0; }
+  .chart img { max-width:100%; border:1px solid #e8edf3; border-radius:8px; }
+  .duo { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media(max-width:720px) { .duo { grid-template-columns:1fr; } }
+  .bull { border-top:4px solid var(--green); } .bear { border-top:4px solid var(--red); }
+  .panel { background:#fbfcfe; border-radius:8px; padding:14px 16px; }
+  .panel h4 { font-size:15px; margin-bottom:8px; }
+  .bull h4 { color:var(--green); } .bear h4 { color:var(--red); }
+  .panel ul { padding-left:18px; font-size:14px; }
+  .panel li { margin-bottom:6px; }
+  .fals { background:#fdf6e3; border-radius:6px; padding:8px 12px; font-size:13px; margin-top:10px; }
+  .src { font-size:12px; color:#999; margin-top:14px; }
+  .disc { font-size:12px; color:#8a8a8a; background:#f0f2f5; border-radius:8px; padding:14px 18px; }
+  .up { color:var(--red); font-weight:bold; } .dn { color:var(--green); font-weight:bold; }
+  /* 首页卡片 */
+  .grphead { grid-column:1 / -1; margin:1.2rem 0 0; font-size:1.05rem; color:var(--navy); border-left:4px solid var(--navy); padding-left:.5rem; }
+  .lib { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:18px; margin-top:8px; }
+  .libcard { background:#fff; border-radius:12px; padding:22px 24px; box-shadow:0 1px 4px rgba(0,0,0,.06); border-top:5px solid var(--navy); }
+  .libcard .code { font-size:13px; color:#999; }
+  .libcard h3 { font-size:19px; margin:2px 0 10px; }
+  .libcard .stance { font-size:13px; }
+  .libcard p.th { font-size:14px; margin:10px 0; color:#444; }
+  .libcard .mini { font-size:12.5px; color:#666; border-top:1px dashed #dde3ea; margin-top:10px; padding-top:8px; }
+  .libcard a.btn { display:inline-block; margin-top:12px; background:var(--blue); color:#fff; text-decoration:none; font-size:14px; padding:7px 18px; border-radius:6px; }
+  .libcard a.btn:hover { background:var(--navy); }
+  .note { background:#eef4fb; border:1px solid #d4e2f0; border-radius:8px; padding:12px 16px; font-size:13px; color:#4a6076; margin-top:18px; }
+  /* 预警中心 */
+  .al { border-radius:8px; padding:12px 16px; margin:10px 0; font-size:14px; border-left:6px solid; }
+  .al.disprove { background:#fdf0ee; border-color:var(--red); }
+  .al.prove { background:#eef7f0; border-color:var(--green); }
+  .al .tagk { display:inline-block; font-size:12px; font-weight:bold; color:#fff; border-radius:4px; padding:1px 8px; margin-right:8px; }
+  .al.disprove .tagk { background:var(--red); }
+  .al.prove .tagk { background:var(--green); }
+  .al .meta { font-size:12px; color:#999; margin-top:4px; }
+  .okline { background:#eef7f0; border:1px solid #cfe6d4; border-radius:8px; padding:12px 16px; font-size:14px; color:#3d6447; }
+  .snaptable td, .snaptable th { font-size:13px; }
+  .alertdot { display:inline-block; width:9px; height:9px; border-radius:50%; background:#ccc; margin-right:6px; }
+  .alertdot.on { background:var(--red); animation:blink 1.2s infinite; }
+  @keyframes blink { 50% { opacity:.35; } }
+</style>
+</head>
+<body>
+<nav class="top"><div class="inner"><span class="brand">个股深度验证</span><a href="index.html" class="active">研报库首页</a><div class="dropdown"><span class="dropbtn">A股 / 港股 <span class="caret">▾</span></span><div class="dropmenu"><a href="reports/smic.html" class=""><span class="dname">中芯国际</span><span class="dcode">688981.SH / 0981.HK</span></a><a href="reports/eve.html" class=""><span class="dname">亿纬锂能</span><span class="dcode">300014.SZ</span></a><a href="reports/fii.html" class=""><span class="dname">工业富联</span><span class="dcode">601138.SH</span></a><a href="reports/cmoc.html" class=""><span class="dname">洛阳钼业</span><span class="dcode">603993.SH</span></a><a href="reports/yonyou.html" class=""><span class="dname">用友网络</span><span class="dcode">600588.SH</span></a><a href="reports/xiaomi.html" class=""><span class="dname">小米集团</span><span class="dcode">1810.HK</span></a><a href="reports/hh.html" class=""><span class="dname">华虹宏力</span><span class="dcode">688347.SH</span></a></div></div><div class="dropdown"><span class="dropbtn">美股 <span class="caret">▾</span></span><div class="dropmenu"><a href="reports/mu.html" class=""><span class="dname">美光科技</span><span class="dcode">MU.O</span></a><a href="reports/sndk.html" class=""><span class="dname">闪迪</span><span class="dcode">SNDK.O</span></a><a href="reports/nvda.html" class=""><span class="dname">英伟达</span><span class="dcode">NVDA.O</span></a><a href="reports/axti.html" class=""><span class="dname">AXT</span><span class="dcode">AXTI.O</span></a></div></div></div></nav>
+<div class="wrap">
+<header class="hero">
+  <div class="tag">研报库 · 持续更新</div>
+  <h1>个股深度验证报告库</h1>
+  <div class="sub">每只股票一份独立深度报告：六维扫描、多空辩论、概率加权情景与可验证的证伪条件 ｜ 数据：iFinD · 聚源 Gildata · 券商研报</div>
+</header>
+<div class="lib"><h3 class="grphead">A 股 / 港股研报</h3>
+    <div class="libcard">
+      <div class="code">688981.SH / 0981.HK</div>
+      <h3>中芯国际</h3>
+      <span class="stance">观察名单（A股）· 优先H股</span>
+      <p class="th">基本面进入收获期（2Q26 双双超指引），但 A 股 PE 144.9 倍处五年 63% 分位、A/H 溢价约一倍——好公司，贵股票。</p>
+      <div class="mini">A股 99.70 元（10-20，09-22 以来 -18.3%）｜ PE(TTM) 118.5 倍 ｜ 一致目标价 170.99 元（+40%）｜ 证伪：3Q26 毛利率 <26%</div>
+      <a class="btn" href="reports/smic.html">查看深度报告 →</a>
+    </div>
+    <div class="libcard">
+      <div class="code">300014.SZ</div>
+      <h3>亿纬锂能</h3>
+      <span class="stance">逢低增持 Add（左侧分批）</span>
+      <p class="th">动储出货 +55%~66%、一致预期净利三年复合 +40%+，而 PE 处五年 10.2% 分位——以最低分位估值为“量增+毛利率企稳”的期权付费。</p>
+      <div class="mini">现价 45.04 元（10-20，09-22 以来 -12.6%）｜ PE(TTM) 16.8 倍 / 五年 10.2% 分位 ｜ 一致目标价 83.31 元（+62%）｜ 证伪：毛利率破 13% 或连续两季现金流为负</div>
+      <a class="btn" href="reports/eve.html">查看深度报告 →</a>
+    </div>
+    <div class="libcard">
+      <div class="code">601138.SH</div>
+      <h3>工业富联</h3>
+      <span class="stance">持有 Hold（回调至 55 元下转增持）</span>
+      <p class="th">AI 算力链业绩兑现最猛：2026H1 归母 +96%、一致预期 2026E +74.6%；但 PE 处五年 77.7% 分位——好公司 + 合理偏贵的股票，赚兑现的钱而非估值的钱。</p>
+      <div class="mini">现价 47.71 元（10-20，跌入增持区）｜ PE(TTM) 20.2 倍 ｜ 2026E 前瞻 PE 约 20.5 倍 ｜ 证伪：CSP capex 下修或 2026E 一致预期持续下修</div>
+      <a class="btn" href="reports/fii.html">查看深度报告 →</a>
+    </div>
+    <div class="libcard">
+      <div class="code">603993.SH</div>
+      <h3>洛阳钼业</h3>
+      <span class="stance">增持 Add（顺周期分批）</span>
+      <p class="th">铜钴印钞机：2026H1 归母 +86.3%、四期现金流≥净利，而 PE 处五年 19.1% 分位、PEG 0.37——赔率好、报表干净，方向盘在铜价手里。</p>
+      <div class="mini">现价 15.43 元（10-20，09-22 以来 -11.9%）｜ PE(TTM) 11.87 倍 / 五年 19.1% 分位 ｜ 2026E 前瞻 PE 约 11.5 倍 ｜ 证伪：铜价跌破成本线或 2026E 一致预期持续下修</div>
+      <a class="btn" href="reports/cmoc.html">查看深度报告 →</a>
+    </div>
+    <div class="libcard">
+      <div class="code">600588.SH</div>
+      <h3>用友网络</h3>
+      <span class="stance">观察 Watchlist（待扭亏信号）</span>
+      <p class="th">困境反转候选：亏损三年收窄（-20.6→-13.9→预期-2.7亿）、现金流先行转正、毛利率站上 50%，PB 处五年 22% 分位——但“扭亏”尚未发生，等财报确认再上仓位。</p>
+      <div class="mini">现价 9.36 元（10-20）｜ PB 4.87 倍 / 五年 22.3% 分位 ｜ 2026E 一致预期归母 -2.7 亿 ｜ 证伪：2026 亏损 >5 亿或 OCF 再度转负</div>
+      <a class="btn" href="reports/yonyou.html">查看深度报告 →</a>
+    </div>
+    <div class="libcard">
+      <div class="code">1810.HK</div>
+      <h3>小米集团-W</h3>
+      <span class="stance">持有 Hold（待 H2 拐点）</span>
+      <p class="th">戴维斯双杀中段：25H1 归母 +146% 见顶后连续回落，股价距高点 -54%、PE 18.7 倍——泡沫挤出大半但盈利底部未确认，方向交给 2026H2 财报。</p>
+      <div class="mini">现价 26.66 港元（10-20）｜ PE(TTM) 18.10 倍 / PB 2.29 ｜ 26H1 归母 -37.9% ｜ 证伪：2026 全年归母 <280 亿或汽车交付连续下滑</div>
+      <a class="btn" href="reports/xiaomi.html">查看深度报告 →</a>
+    </div>
+    <div class="libcard">
+      <div class="code">688347.SH</div>
+      <h3>华虹宏力</h3>
+      <span class="stance">回避 / 不追 Pass（估值极端透支）</span>
+      <p class="th">真实反转 × 失控定价：26H1 归母 4.0 亿超过去全年、一致预期 +180%，但 PE-TTM 635 倍（70.3% 分位）意味着盈利三年翻倍后前瞻 PE 仍约 225 倍——概率加权中枢 180 元，较现价 -22%。</p>
+      <div class="mini">现价 166.63 元（10-20，跌破 180 中枢）｜ PE-TTM 458.3 倍 / 上市以来 70.3% 分位 ｜ 2026E 归母 10.56 亿（+180%，iFinD 09-22）｜ 证伪：2026 归母 >15 亿或 PE 回落至 300 倍下</div>
+      <a class="btn" href="reports/hh.html">查看深度报告 →</a>
+    </div><h3 class="grphead">美股研报</h3>
+    <div class="libcard">
+      <div class="code">MU.O</div>
+      <h3>美光科技</h3>
+      <span class="stance">持有 Hold（周期顶部区域）</span>
+      <p class="th">HBM 超级周期 × 顶部低 PE 陷阱：TTM 归母 505 亿、毛利率 72.6% 创历史峰值，前瞻 PE 仅 6.57 倍——但股价一年 +534% 已抢跑，中枢 +23% 背后是 FY2027E 盈利真实性的押注。</p>
+      <div class="mini">现价 907.91 美元（10-19，触及 900 窗口）｜ PE-TTM 12.2 倍 / 前瞻 PE ≈5.7 倍 ｜ FY27E EPS 158.9（Yahoo 09-21）｜ 证伪：现货价连续两月下跌或 FY27E 下修 >20%</div>
+      <a class="btn" href="reports/mu.html">查看深度报告 →</a>
+    </div>
+    <div class="libcard">
+      <div class="code">SNDK.O</div>
+      <h3>闪迪</h3>
+      <span class="stance">持有 Hold（预期打满，对称）</span>
+      <p class="th">纯 NAND 弹性标的：TTM 归母 114 亿极致反转、前瞻 PE 6.67 倍，但自高点 -25% 的回撤是四只美股中最深的——预期打满后，加权中枢与现价持平（+4%），方向交给 NAND 价格。</p>
+      <div class="mini">现价 1,379.19 美元（10-19，距高点 -41%）｜ 前瞻 PE ≈5.2 倍 / PB 16.7 倍 ｜ FY27E EPS 264.7（Yahoo 09-21）｜ 证伪：NAND 价格连续两月下跌或跌破 1,000 美元</div>
+      <a class="btn" href="reports/sndk.html">查看深度报告 →</a>
+    </div>
+    <div class="libcard">
+      <div class="code">NVDA.O</div>
+      <h3>英伟达</h3>
+      <span class="stance">增持 Add（回调加仓）</span>
+      <p class="th">AI 主线中估值纪律最好的标的：TTM 归母 1,929 亿、FY27E +98%，PE-TTM 消化回 28.7 倍——盈利兑现度全库最高，左尾 -24% 显著浅于存储双雄，风险调整后最优。</p>
+      <div class="mini">现价 218.03 美元（10-19）｜ PE-TTM 27.6 倍 / 前瞻 14.5 倍 ｜ FY28E EPS 15.68（Yahoo 09-21）｜ 证伪：云厂资本开支指引下修或数据中心收入环比连续下滑</div>
+      <a class="btn" href="reports/nvda.html">查看深度报告 →</a>
+    </div>
+    <div class="libcard">
+      <div class="code">AXTI.O</div>
+      <h3>AXT Inc</h3>
+      <span class="stance">观察 Watchlist（等两个触发器）</span>
+      <p class="th">AI 光模块上游的 InP 衬底龙头：叙事真实（收入 +165%）、盈利刚转正（TTM 归母仅 388 万），一年二十倍后 52 亿市值已预支 2028 年盈利——等 2027E 上修或回落至 56 美元下方再动手。</p>
+      <div class="mini">现价 58.03 美元（10-19，曾触 56 触发器）｜ 前瞻 PE 35.5 倍（2027E）｜ TTM 归母 388 万刚转正 ｜ 证伪：收入环比连续两季下滑或 2027E 下修 >25%</div>
+      <a class="btn" href="reports/axti.html">查看深度报告 →</a>
+    </div>
+</div>
+<section>
+  <h2 class="sec">指标预警中心 / Alert Center <span class="en">证实 / 证伪自动监听 · 每交易日收盘后检查</span></h2>
+  <div id="alertzone"></div>
+</section>
+
+<script>
+(function(){
+  var depth = 0;
+  var base = depth ? '../' : '';
+  fetch(base + 'alerts.json').then(function(r){return r.json();}).then(function(d){
+    var box = document.getElementById('alertzone'); if(!box) return;
+    var stockFilter = box.getAttribute('data-stock');
+    var alerts = d.alerts || [];
+    if (stockFilter) alerts = alerts.filter(function(a){ return a.link.indexOf(stockFilter) >= 0; });
+    var html = '';
+    if (alerts.length === 0) {
+      html = '<div class="okline"><span class="alertdot"></span>当前无触发中的预警 —— 各报告立场与证伪条件均未被行情数据验证或推翻（最后检查：' + d.last_check + '）</div>';
+    } else {
+      alerts.forEach(function(a){
+        var tag = a.kind === 'disprove' ? '证伪预警' : '证实信号';
+        html += '<div class="al ' + a.kind + '"><span class="tagk">' + tag + '</span><a href="' + base + a.link + '" style="color:var(--navy);font-weight:bold;text-decoration:none">' + a.stock + '</a>：' + a.msg
+              + '<div class="meta">触发值 ' + a.value + '（阈值 ' + a.thr + '）｜ 首次触发 ' + a.first_fired + '</div></div>';
+      });
+    }
+    if (!stockFilter && d.snapshot) {
+      html += '<table class="snaptable" style="margin-top:14px"><tr><th>标的</th><th>现价</th><th>涨跌%</th><th>PE(TTM)</th><th>总市值(亿)</th><th>当前立场</th></tr>';
+      d.snapshot.forEach(function(s){
+        var cls = s.chg >= 0 ? 'up' : 'dn';
+        html += '<tr><td><a href="' + s.link + '" style="color:var(--blue)">' + s.name + '</a></td><td>' + s.price + '</td><td class="' + cls + '">' + s.chg + '%</td><td>' + s.pe + '</td><td>' + s.mktcap + '</td><td>' + s.stance + '</td></tr>';
+      });
+      html += '</table><div class="src">' + d.note + ' 每个交易日收盘后（15:35）自动检查。</div>';
+    }
+    box.innerHTML = html;
+  }).catch(function(){
+    var box = document.getElementById('alertzone'); if(box) box.innerHTML = '<div class="src">预警数据加载失败（alerts.json 尚未生成）。</div>';
+  });
+})();
+</script>
+
+<div class="note">新增股票：准备该票的图表 PNG（命名 <code>&lt;代码&gt;_&lt;图名&gt;.png</code>）与结构化内容后运行站点生成脚本，即可自动新增独立页面与本页卡片。</div>
+</div>
+</body>
+</html>
